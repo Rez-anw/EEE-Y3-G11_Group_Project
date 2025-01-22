@@ -1,7 +1,7 @@
 # FIXED
 
 PID_main.obj: ../PID_main.c
-PID_main.obj: C:/EEE/GP-G11/PID_Controller/device/driverlib.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/driverlib.h
 PID_main.obj: C:/ti/C2000Ware_5_03_00_00/driverlib/f2837xd/driverlib/inc/hw_memmap.h
 PID_main.obj: C:/ti/C2000Ware_5_03_00_00/driverlib/f2837xd/driverlib/adc.h
 PID_main.obj: C:/ti/ccs1220/ccs/tools/compiler/ti-cgt-c2000_22.6.0.LTS/include/stdbool.h
@@ -87,11 +87,67 @@ PID_main.obj: C:/ti/C2000Ware_5_03_00_00/driverlib/f2837xd/driverlib/upp.h
 PID_main.obj: C:/ti/C2000Ware_5_03_00_00/driverlib/f2837xd/driverlib/inc/hw_upp.h
 PID_main.obj: C:/ti/C2000Ware_5_03_00_00/driverlib/f2837xd/driverlib/version.h
 PID_main.obj: C:/ti/C2000Ware_5_03_00_00/driverlib/f2837xd/driverlib/driver_inclusive_terminology_mapping.h
-PID_main.obj: C:/EEE/GP-G11/PID_Controller/device/device.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/device.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F28x_Project.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_Cla_typedefs.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_device.h
+PID_main.obj: C:/ti/ccs1220/ccs/tools/compiler/ti-cgt-c2000_22.6.0.LTS/include/assert.h
+PID_main.obj: C:/ti/ccs1220/ccs/tools/compiler/ti-cgt-c2000_22.6.0.LTS/include/stdarg.h
+PID_main.obj: C:/ti/ccs1220/ccs/tools/compiler/ti-cgt-c2000_22.6.0.LTS/include/stddef.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_adc.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_analogsubsys.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_cla.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_clb.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_clbxbar.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_cmpss.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_cputimer.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_dac.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_dcsm.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_dma.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_ecap.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_emif.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_epwm.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_epwm_xbar.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_eqep.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_flash.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_gpio.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_i2c.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_input_xbar.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_ipc.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_mcbsp.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_memconfig.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_nmiintrupt.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_otp.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_output_xbar.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_piectrl.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_pievect.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_sci.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_sdfm.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_spi.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_sysctrl.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_upp.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_xbar.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_xint.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_can.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_Examples.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_GlobalPrototypes.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_cputimervars.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_Cla_defines.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_EPwm_defines.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_Adc_defines.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_Emif_defines.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_Gpio_defines.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_I2c_defines.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_Ipc_defines.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_Pie_defines.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_Dma_defines.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_SysCtrl_defines.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_Upp_defines.h
+PID_main.obj: C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_defaultisr.h
 
 ../PID_main.c:
 
-C:/EEE/GP-G11/PID_Controller/device/driverlib.h:
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/driverlib.h:
 
 C:/ti/C2000Ware_5_03_00_00/driverlib/f2837xd/driverlib/inc/hw_memmap.h:
 
@@ -263,5 +319,117 @@ C:/ti/C2000Ware_5_03_00_00/driverlib/f2837xd/driverlib/version.h:
 
 C:/ti/C2000Ware_5_03_00_00/driverlib/f2837xd/driverlib/driver_inclusive_terminology_mapping.h:
 
-C:/EEE/GP-G11/PID_Controller/device/device.h:
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/device.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F28x_Project.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_Cla_typedefs.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_device.h:
+
+C:/ti/ccs1220/ccs/tools/compiler/ti-cgt-c2000_22.6.0.LTS/include/assert.h:
+
+C:/ti/ccs1220/ccs/tools/compiler/ti-cgt-c2000_22.6.0.LTS/include/stdarg.h:
+
+C:/ti/ccs1220/ccs/tools/compiler/ti-cgt-c2000_22.6.0.LTS/include/stddef.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_adc.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_analogsubsys.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_cla.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_clb.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_clbxbar.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_cmpss.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_cputimer.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_dac.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_dcsm.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_dma.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_ecap.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_emif.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_epwm.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_epwm_xbar.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_eqep.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_flash.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_gpio.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_i2c.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_input_xbar.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_ipc.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_mcbsp.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_memconfig.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_nmiintrupt.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_otp.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_output_xbar.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_piectrl.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_pievect.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_sci.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_sdfm.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_spi.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_sysctrl.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_upp.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_xbar.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_xint.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/headers/include/F2837xD_can.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_Examples.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_GlobalPrototypes.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_cputimervars.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_Cla_defines.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_EPwm_defines.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_Adc_defines.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_Emif_defines.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_Gpio_defines.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_I2c_defines.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_Ipc_defines.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_Pie_defines.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_Dma_defines.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_SysCtrl_defines.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_Upp_defines.h:
+
+C:/ti/C2000Ware_5_03_00_00/device_support/f2837xd/common/include/F2837xD_defaultisr.h:
 
