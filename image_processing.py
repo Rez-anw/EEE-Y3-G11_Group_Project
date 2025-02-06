@@ -132,3 +132,8 @@ cv2.imshow('Placed Balls', placed_balls_image)  # **显示小球图像**
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()
+#Currently, the system can roughly generate paths and detect ball positions for a single image. The next steps are:  
+#1. Generate path direction.  
+#2. Detect ball positions in real-time video.  
+#3. Use Kalman filtering to predict the ball’s next position.  
+#4. Compare the path direction with the predicted ball movement direction to determine the adjustment angle.
