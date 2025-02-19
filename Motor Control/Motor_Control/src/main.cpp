@@ -4,9 +4,10 @@
 // Servo objects for X-axis and Y-axis motors
 Servo motorUp, motorDown, motorLeft, motorRight;
 
+
 // Minimum and maximum motor angles
 #define MOTOR_ANGLE_MIN 0
-#define MOTOR_ANGLE_MAX 45
+#define MOTOR_ANGLE_MAX 30
 
 // PID parameters
 float Kp = 1.0;
@@ -16,7 +17,7 @@ float prevError[2] = {0, 0};
 float integral[2] = {0, 0};
 int x_axis = 0, y_axis = 1;
 
-// Function to move motor to a specific angle
+// Function to move motorX to a specific angle
 void moveMotor(Servo &motor, float angle) {
     // Constrain the angle within min/max bounds
     angle = constrain(angle, MOTOR_ANGLE_MIN, MOTOR_ANGLE_MAX);
@@ -81,7 +82,7 @@ void setup() {
 
 void loop() {
     // Example values (Replace with actual sensor readings)
-    float currentX = 200, desiredX = 200;
+    float currentX = 200, desiredX = 100;
     float currentY = 150, desiredY = 100;
 
     // Control motors based on the desired and current positions
