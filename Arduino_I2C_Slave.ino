@@ -1,4 +1,4 @@
-Arduino Code (I2C Slave + Continuous Control)
+// Arduino Code (I2C Slave + Continuous Control)
 
 #include <Wire.h>
 #include <Servo.h>
