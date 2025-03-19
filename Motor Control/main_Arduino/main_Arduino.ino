@@ -6,8 +6,8 @@ Servo motorX, motorY;
 
 // Minimum and maximum motor angles
 #define BASE_ANGLE 45
-#define MOTOR_ANGLE_MIN 20
-#define MOTOR_ANGLE_MAX 70
+#define MOTOR_ANGLE_MIN (BASE_ANGLE - 20)
+#define MOTOR_ANGLE_MAX (BASE_ANGLE + 20)
 
 
 // PID parameters
@@ -93,6 +93,5 @@ void loop() {
         motorControl(dataX[i], dataY[i]);
         delay(2000);
     }
-
 
 }
