@@ -77,14 +77,14 @@ void setup() {
     motorX.attach(3);
     motorY.attach(5);
 
-    moveMotor(motorX, 45);
-    moveMotor(motorY, 45);
+    moveMotor(motorX, BASE_ANGLE);
+    moveMotor(motorY, BASE_ANGLE);
 }
 
 void loop() {
     
-    motorX.write(45);
-    motorY.write(45);
+    motorX.write(BASE_ANGLE);
+    motorY.write(BASE_ANGLE);
     delay(5000);
 
     float dataX[6] = {10, 7, 0, 8, -8, -10};
