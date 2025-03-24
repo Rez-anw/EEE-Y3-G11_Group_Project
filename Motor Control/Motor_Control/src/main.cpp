@@ -22,16 +22,17 @@ int x_axis = 0, y_axis = 1;
 
 float data[5]; 
 float prevData[2] = {0, 0};
+int completionStatus = 0;
 
 
 // PID function to compute motor adjustments
-float PIDControl(float error, int axis) {
-    //float error = desiredPosition - currentPosition;
+float PIDControl(float currentPosition, float desiredPosition, int axis) {
+    float error = desiredPosition - currentPosition;
 
     // Reset integral if the corresponding value has changed
-    if (data[axis] <= 0.5 && data[axis] >= -0.5){
+    if (data[axis + 2] != prevData[axis]) {
         integral[axis] = 0;
-        // prevData[axis] = data[axis];
+        prevData[axis] = data[axis];
     }
 
     integral[axis] += error;
@@ -56,14 +57,14 @@ void moveMotor(Servo &motor, float angle) {
 }
 
 // Function to control motors based on PID output
-void motorControl(float errorX, float errorY) {
+void motorControl(float currentX, float currentY, float desiredX, float desiredY) {
     // Compute PID output for X and Y axes
-    float tiltX = PIDControl(errorX, x_axis);
-    float tiltY = PIDControl(errorY, y_axis);
+    float tiltX = PIDControl(currentX, desiredX, x_axis);
+    float tiltY = PIDControl(currentY, desiredY, y_axis);
     
     // Without PID control  (Use this)
-    //float tiltX = errorX;
-    //float tiltY = errorY;
+    //float tiltX = desiredX - currentX;
+    //float tiltY = desiredY - currentY;
 
     // Control Motors
     moveMotor(motorX, tiltX);
@@ -83,16 +84,27 @@ void setup() {
 
 void loop() {
     
-    motorX.write(BASE_ANGLE);
-    motorY.write(BASE_ANGLE);
-    delay(5000);
+    // For running actual
+    // while (completionStatus == 0){
+    //     motorControl(data[0], data[1], data[2], data[3]);
+    //     delay(20);
+    // }
 
-    float dataX[6] = {10, 7, 0, 8, -8, -10};
-    float dataY[6] = {0, 0, 0, 0, 0, 0};
-    for (int i = 0; i < 6; i++){
-        motorControl(dataX[i], dataY[i]);
-        delay(2000);
+
+
+
+    // For test only 
+    delay(10000);
+    
+    float currentX[5] = {100, 100, 100, 100, 100};
+    float currentY[5] = {100, 100, 100, 100, 100};
+    float desiredX[5] = {100, 150, 50, 100, 150};
+    float desiredY[5] = {100, 150, 50, 100, 150};
+
+    for (int i = 0; i < 5; i++){
+      motorControl(currentX[i], currentY[i], desiredX[i], desiredY[i]);
+      delay(2000);
     }
 
-
+    
 }
