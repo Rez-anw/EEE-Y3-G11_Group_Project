@@ -1,8 +1,43 @@
 #include <Arduino.h>
 #include <Servo.h>
+#include <Wire.h>
 
 // Servo objects for X-axis and Y-axis motors
 Servo motorX, motorY;
+
+////////////////////////////////////////////
+// I2C Communication with raspberry pi
+//  Raspberry Pi → Arduino
+//  SDA (GPIO2) → A4
+//  SCL (GPIO3) → A5
+//  GND → GND
+
+#define SLAVE_ADDRESS 0x08
+#define DATA_SIZE 4  // 5 floats (4 bytes each)
+#define BYTE_SIZE (DATA_SIZE * 4)
+
+byte receivedBytes[BYTE_SIZE];
+float receivedData[DATA_SIZE];
+
+void receiveEvent(int numBytes) {
+    int index = 0;
+    while (Wire.available() && index < BYTE_SIZE) {
+        receivedBytes[index++] = Wire.read();  // Read byte from I2C
+    }
+
+    // Convert bytes back to floats
+    memcpy(receivedData, receivedBytes, BYTE_SIZE);
+
+    // Print received floats
+    Serial.print("Received: ");
+    for (int i = 0; i < DATA_SIZE; i++) {
+        Serial.print(receivedData[i], 2);
+        Serial.print(" ");
+    }
+    Serial.println();
+}
+
+////////////////////////////////////////////
 
 // Minimum and maximum motor angles
 #define BASE_ANGLE 45
@@ -20,7 +55,7 @@ float integralLimit = 10.0;
 
 int x_axis = 0, y_axis = 1;
 
-float data[5]; 
+// float data[]; 
 float prevData[2] = {0, 0};
 int completionStatus = 0;
 
@@ -30,9 +65,9 @@ float PIDControl(float currentPosition, float desiredPosition, int axis) {
     float error = desiredPosition - currentPosition;
 
     // Reset integral if the corresponding value has changed
-    if (data[axis + 2] != prevData[axis]) {
+    if (receivedData[axis + 2] != prevData[axis]) {
         integral[axis] = 0;
-        prevData[axis] = data[axis];
+        prevData[axis] = receivedData[axis+2];
     }
 
     integral[axis] += error;
@@ -80,17 +115,23 @@ void setup() {
 
     moveMotor(motorX, BASE_ANGLE);
     moveMotor(motorY, BASE_ANGLE);
+
+    ////////////////////////////////////
+    // I2C
+        Wire.begin(SLAVE_ADDRESS);
+    Wire.onReceive(receiveEvent);
+    Serial.begin(9600);
+
+    /////////////////////////////////////////
 }
 
 void loop() {
     
     // For running actual
     // while (completionStatus == 0){
-    //     motorControl(data[0], data[1], data[2], data[3]);
+    //     motorControl(receivedData[0], receivedData[1], receivedData[2], receivedData[3]);
     //     delay(20);
     // }
-
-
 
 
     // For test only 
@@ -105,6 +146,5 @@ void loop() {
       motorControl(currentX[i], currentY[i], desiredX[i], desiredY[i]);
       delay(2000);
     }
-
     
 }
