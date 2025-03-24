@@ -6,6 +6,7 @@ import cv2
 import pandas as pd  # For reading the CSV file
 
 ###################################################
+'''
 #I2C sending current and desired position
 import smbus
 
@@ -27,6 +28,35 @@ def send_two_points_16bit(x1, y1, x2, y2):
         print(f"Sent: ({x1}, {y1}), ({x2}, {y2})")
     except Exception as e:
         print(f"I2C Send Error: {e}")
+'''
+import smbus
+import struct
+import time
+
+# I2C setup
+ARDUINO_ADDRESS = 0x08
+bus = smbus.SMBus(1)
+
+def send_floats(float_array):
+    """Send an array of 5 floats to Arduino as bytes."""
+    byte_data = bytearray()
+    for value in float_array:
+        byte_data.extend(struct.pack('f', value))  # 4 bytes per float
+
+    try:
+        bus.write_i2c_block_data(ARDUINO_ADDRESS, 0, list(byte_data))
+        print(f"Sent: {float_array}")
+    except Exception as e:
+        print(f"Error sending floats: {e}")
+
+def read_servo_positions():
+    """Read 2 bytes from Arduino representing current servo angles."""
+    try:
+        data = bus.read_i2c_block_data(ARDUINO_ADDRESS, 0, 2)
+        angleX, angleY = data[0], data[1]
+        print(f"Servo Positions - X: {angleX}, Y: {angleY}")
+    except Exception as e:
+        print(f"Error reading servo positions: {e}")
 ##############################################################
 
 # Load path coordinates from CSV
@@ -214,10 +244,15 @@ while True:
             # ---------------------------------------------------------
 
             ##########################################################################################################################################################################
+            '''
             #I2C sending current and desired position
 
             send_two_points_16bit(center_x,center_y,target_point[0],target_point[1])
+            '''
+            data_to_send = [center_x, center_y, target_point[0], target_point[1], 0.0]
 
+            send_floats(data_to_send)
+            
             ##########################################################################################################################################################################
             
             # Draw visualization
