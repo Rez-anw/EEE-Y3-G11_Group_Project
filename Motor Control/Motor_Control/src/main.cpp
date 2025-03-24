@@ -29,7 +29,7 @@ float PIDControl(float error, int axis) {
     //float error = desiredPosition - currentPosition;
 
     // Reset integral if the corresponding value has changed
-    if (data[axis] <= 0.5){
+    if (data[axis] <= 0.5 && data[axis] >= -0.5){
         integral[axis] = 0;
         // prevData[axis] = data[axis];
     }
@@ -88,7 +88,7 @@ void loop() {
     delay(5000);
 
     float dataX[6] = {10, 7, 0, 8, -8, -10};
-    float dataY[6] = {10, 7, 0, 8, -8, -10};
+    float dataY[6] = {0, 0, 0, 0, 0, 0};
     for (int i = 0; i < 6; i++){
         motorControl(dataX[i], dataY[i]);
         delay(2000);

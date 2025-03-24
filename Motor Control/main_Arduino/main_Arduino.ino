@@ -4,7 +4,7 @@
 // Servo objects for X-axis and Y-axis motors
 Servo motorX, motorY;
 
-// Minimum and maximum motor angles
+// Base, minimum and maximum motor angles
 #define BASE_ANGLE 45
 #define MOTOR_ANGLE_MIN (BASE_ANGLE - 20)
 #define MOTOR_ANGLE_MAX (BASE_ANGLE + 20)
@@ -29,7 +29,7 @@ float PIDControl(float error, int axis) {
     //float error = desiredPosition - currentPosition;
 
     // Reset integral if the corresponding value has changed
-    if (data[axis] <= 0.5){
+    if (data[axis] <= 0.2 && data[axis] >= -0.2){
         integral[axis] = 0;
         // prevData[axis] = data[axis];
     }
@@ -44,7 +44,7 @@ float PIDControl(float error, int axis) {
     return output;
 }
 
-// Function to move motorX to a specific angle
+// Function to move motor to a specific angle
 void moveMotor(Servo &motor, float angle) {
     // Adjust angle relative to the base angle
     float adjustedAngle = BASE_ANGLE + angle;
@@ -61,7 +61,7 @@ void motorControl(float errorX, float errorY) {
     float tiltX = PIDControl(errorX, x_axis);
     float tiltY = PIDControl(errorY, y_axis);
     
-    // Without PID control  (Use this)
+    // Without PID control  
     //float tiltX = errorX;
     //float tiltY = errorY;
 
@@ -79,6 +79,17 @@ void setup() {
 
     moveMotor(motorX, BASE_ANGLE);
     moveMotor(motorY, BASE_ANGLE);
+}
+
+// This is example data data[] = {errorX, errorY, completion status}
+float data[] = {9.3, -6.7, 0};
+
+void loop() {
+
+  while (data[2] == 0){
+    motorControl(data[0], data[1]);
+    delay(20);
+  }
 }
 
 void loop() {
