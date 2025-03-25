@@ -40,9 +40,13 @@ void receiveEvent(int numBytes) {
 ////////////////////////////////////////////
 
 // Minimum and maximum motor angles
-#define BASE_ANGLE 45
-#define MOTOR_ANGLE_MIN (BASE_ANGLE - 20)
-#define MOTOR_ANGLE_MAX (BASE_ANGLE + 20)
+#define BASE_ANGLE_X 40
+#define MIN_ANGLE_X (BASE_ANGLE_X - 10)
+#define MAX_ANGLE_X (BASE_ANGLE_X + 10)
+
+#define BASE_ANGLE_Y 50
+#define MIN_ANGLE_Y (BASE_ANGLE_Y - 10)
+#define MAX_ANGLE_Y (BASE_ANGLE_Y + 10)
 
 
 // PID parameters
@@ -81,12 +85,22 @@ float PIDControl(float currentPosition, float desiredPosition, int axis) {
 }
 
 // Function to move motorX to a specific angle
-void moveMotor(Servo &motor, float angle) {
+void moveMotorX(Servo &motor, float angle) {
     // Adjust angle relative to the base angle
-    float adjustedAngle = BASE_ANGLE + angle;
+    float adjustedAngle = BASE_ANGLE_X + angle;
 
     // Constrain the angle within min/max bounds
-    adjustedAngle = constrain(adjustedAngle, MOTOR_ANGLE_MIN, MOTOR_ANGLE_MAX);
+    adjustedAngle = constrain(adjustedAngle, MIN_ANGLE_X, MAX_ANGLE_X);
+
+    motor.write(adjustedAngle);
+}
+
+void moveMotorY(Servo &motor, float angle) {
+    // Adjust angle relative to the base angle
+    float adjustedAngle = BASE_ANGLE_Y + angle;
+
+    // Constrain the angle within min/max bounds
+    adjustedAngle = constrain(adjustedAngle, MIN_ANGLE_Y, MAX_ANGLE_Y);
 
     motor.write(adjustedAngle);
 }
@@ -94,16 +108,16 @@ void moveMotor(Servo &motor, float angle) {
 // Function to control motors based on PID output
 void motorControl(float currentX, float currentY, float desiredX, float desiredY) {
     // Compute PID output for X and Y axes
-    float tiltX = PIDControl(currentX, desiredX, x_axis);
-    float tiltY = PIDControl(currentY, desiredY, y_axis);
+    // float tiltX = PIDControl(currentX, desiredX, x_axis);
+    // float tiltY = PIDControl(currentY, desiredY, y_axis);
     
     // Without PID control  (Use this)
-    //float tiltX = desiredX - currentX;
-    //float tiltY = desiredY - currentY;
+    float tiltX = desiredX - currentX;
+    float tiltY = desiredY - currentY;
 
     // Control Motors
-    moveMotor(motorX, tiltX);
-    moveMotor(motorY, tiltY);
+    moveMotorX(motorX, tiltX);
+    moveMotorY(motorY, tiltY);
 
 }
 
@@ -113,12 +127,15 @@ void setup() {
     motorX.attach(3);
     motorY.attach(5);
 
-    moveMotor(motorX, BASE_ANGLE);
-    moveMotor(motorY, BASE_ANGLE);
+    moveMotorX(motorX, BASE_ANGLE_X);
+    moveMotorY(motorY, BASE_ANGLE_Y);
 
     ////////////////////////////////////
     // I2C
-        Wire.begin(SLAVE_ADDRESS);
+    Wire.begin(SLAVE_ADDRESS);
+    // Or use external pull up resistor: 4.7 kilo_ohms (GPIO2 > 3.3V and GPIO3 > 3.3V)
+    //pinMode(A4, INPUT_PULLUP);  // Enable internal pull-up on SDA
+    //pinMode(A5, INPUT_PULLUP);  // Enable internal pull-up on SCL
     Wire.onReceive(receiveEvent);
     Serial.begin(9600);
 
@@ -135,7 +152,7 @@ void loop() {
 
 
     // For test only 
-    delay(10000);
+    delay(5000);
     
     float currentX[5] = {100, 100, 100, 100, 100};
     float currentY[5] = {100, 100, 100, 100, 100};
