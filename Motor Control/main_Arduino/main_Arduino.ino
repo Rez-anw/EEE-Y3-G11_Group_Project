@@ -42,6 +42,11 @@ int x_axis = 0, y_axis = 1;
 float prevData[2] = {0, 0};
 int completionStatus = 0;
 
+
+////////////////////////////////////////////////////////////////////////
+
+// I2C 
+
 uint16_t receivedData[DATA_SIZE];
 int16_t data[4];
 
@@ -62,6 +67,8 @@ void receiveData(int byteCount) {
   }
 }
 
+
+/////////////////////////////////////////////////////////////////////////////
 
 // PID function to compute motor adjustments
 float PIDControl(float currentPosition, float desiredPosition, int axis) {
@@ -131,23 +138,23 @@ void setup() {
     moveMotorX(motorX, 0);
     moveMotorY(motorY, 0);
 
-    ////////////////////////////////////
+    //////////////////////////////////////////////////////////////////
     // I2C
     Wire.begin(0x08);  // Initialize I2C as a slave with address 0x08
     Wire.onReceive(receiveData);  // Register receive callback
     Serial.begin(115200);  // Initialize serial monitor for debugging
 
-    /////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////
 }
 
 void loop() {
     
     // For running actual
-    while (completionStatus == 0){
-        motorControl(receivedData[0], receivedData[1], receivedData[2], receivedData[3]);
-        //Serial.println(receivedData);
-        delay(20);
-    }
+    // while (completionStatus == 0){
+    //     motorControl(receivedData[0], receivedData[1], receivedData[2], receivedData[3]);
+    //     //Serial.println(receivedData);
+    //     delay(20);
+    // }
 
 
     // // For test only 
@@ -162,7 +169,7 @@ void loop() {
 
     // for (int i = 0; i < 5; i++){
     //   motorControl(currentX[i], currentY[i], desiredX[i], desiredY[i]);
-    //   delay(2000);
+    //   delay(200);
     // }
     
 }
