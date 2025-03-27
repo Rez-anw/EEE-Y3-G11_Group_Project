@@ -7,7 +7,7 @@ int16_t desired_x = 0, desired_y = 0;
 void setup() {
   Wire.begin(0x08);  // Initialize I2C as a slave with address 0x08 that we set the address in R.P.
   Wire.onReceive(receiveData);  // Register a callback function receiveData, which is automatically triggered when the master device(R.P.) sends data.
-  Serial.begin(9600);  // Initialize serial monitor for debugging
+  Serial.begin(115200);  // Initialize serial monitor for debugging
 }
 
 void loop() {
@@ -41,8 +41,8 @@ void receiveData(int byteCount) {
       buffer[i] = Wire.read();
     }
 
-    current_x = (int16_t)((buffer[0] << 8) | buffer[1]); 
-    current_y = (int16_t)((buffer[2] << 8) | buffer[3]);
+    current_x = (int16_t)((buffer[0] << 8) | buffer[1]) /100; 
+    current_y = (int16_t)((buffer[2] << 8) | buffer[3]) / 100;
     desired_x = (int16_t)((buffer[4] << 8) | buffer[5]);
     desired_y = (int16_t)((buffer[6] << 8) | buffer[7]);
   }

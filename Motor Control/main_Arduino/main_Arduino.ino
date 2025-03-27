@@ -20,12 +20,12 @@ Servo motorX, motorY;
 
 // Minimum and maximum motor angles
 #define BASE_ANGLE_X 40
-#define MIN_ANGLE_X (BASE_ANGLE_X - 10)
-#define MAX_ANGLE_X (BASE_ANGLE_X + 10)
+#define MIN_ANGLE_X (BASE_ANGLE_X - 5)
+#define MAX_ANGLE_X (BASE_ANGLE_X + 5)
 
 #define BASE_ANGLE_Y 50
-#define MIN_ANGLE_Y (BASE_ANGLE_Y - 10)
-#define MAX_ANGLE_Y (BASE_ANGLE_Y + 10)
+#define MIN_ANGLE_Y (BASE_ANGLE_Y - 5)
+#define MAX_ANGLE_Y (BASE_ANGLE_Y + 5)
 
 
 // PID parameters
@@ -46,26 +46,34 @@ int completionStatus = 0;
 ////////////////////////////////////////////////////////////////////////
 
 // I2C 
-
-uint16_t receivedData[DATA_SIZE];
+int16_t currentX, currentY, desiredX, desiredY;
+int16_t receivedData[DATA_SIZE];
 int16_t data[4];
 
 void receiveData(int byteCount) {
-  if (byteCount >= 8) {  // Expecting at least 8 bytes (4 x int16_t)
+  if (byteCount >= 9) {
     uint8_t buffer[8];
-
-    // Read 8 bytes from the I2C buffer safely
+    Wire.read();
+    // Read 8 bytes from the I2C buffer
     for (int i = 0; i < 8 && Wire.available(); i++) {
       buffer[i] = Wire.read();
     }
 
     // Combine high and low bytes into 16-bit signed integers
-    receivedData[0] = (int16_t)((buffer[0] << 8) | buffer[1]); // current_x
-    receivedData[1] = (int16_t)((buffer[2] << 8) | buffer[3]); // current_y
-    receivedData[2] = (int16_t)((buffer[4] << 8) | buffer[5]); // desired_x
-    receivedData[3] = (int16_t)((buffer[6] << 8) | buffer[7]); // desired_y
+    currentX = (int16_t)((buffer[0] << 8) | buffer[1]) * 230 / 1920 ; // current_x
+    currentY = (int16_t)((buffer[2] << 8) | buffer[3]) * 230 / 1920 ; // current_y
+    desiredX = (int16_t)((buffer[4] << 8) | buffer[5]) * 230 / 1920 ; // desired_x
+    desiredY = (int16_t)((buffer[6] << 8) | buffer[7]) * 230 / 1920 ; // desired_y
+
+    receivedData[0] = map(currentX, 0, 1080, 0, 230);
+    receivedData[1] = map(currentY, 0, 1080, 0, 230);
+    receivedData[2] = map(desiredX, 0, 1080, 0, 230);
+    receivedData[3] = map(desiredY, 0, 1080, 0, 230);
+
   }
 }
+
+
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -149,12 +157,18 @@ void setup() {
 
 void loop() {
     
-    // For running actual
-    // while (completionStatus == 0){
-    //     motorControl(receivedData[0], receivedData[1], receivedData[2], receivedData[3]);
-    //     //Serial.println(receivedData);
-    //     delay(20);
-    // }
+    //For running actual
+    while (completionStatus == 0){
+        motorControl(receivedData[0], receivedData[1], receivedData[2], receivedData[3]);
+        //Serial.println(receivedData);
+        // Print the received positions to Serial Monitor if you want
+        // Print receivedData as CSV for MATLAB
+        Serial.print(receivedData[0]); Serial.print(",");
+        Serial.print(receivedData[1]); Serial.print(",");
+        Serial.print(receivedData[2]); Serial.print(",");
+        Serial.println(receivedData[3]); // Last value with newline
+        delay(20);
+    }
 
 
     // // For test only 
