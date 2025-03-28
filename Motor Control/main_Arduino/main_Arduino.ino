@@ -19,19 +19,22 @@ Servo motorX, motorY;
 ////////////////////////////////////////////
 
 // Minimum and maximum motor angles
-#define BASE_ANGLE_X 40
-#define MIN_ANGLE_X (BASE_ANGLE_X - 5)
-#define MAX_ANGLE_X (BASE_ANGLE_X + 5)
+#define diffX 10
 
+#define BASE_ANGLE_X 40
+#define MIN_ANGLE_X (BASE_ANGLE_X - diffX)
+#define MAX_ANGLE_X (BASE_ANGLE_X + diffX)
+
+#define diffY 10
 #define BASE_ANGLE_Y 50
-#define MIN_ANGLE_Y (BASE_ANGLE_Y - 5)
-#define MAX_ANGLE_Y (BASE_ANGLE_Y + 5)
+#define MIN_ANGLE_Y (BASE_ANGLE_Y - diffY)
+#define MAX_ANGLE_Y (BASE_ANGLE_Y + diffY)
 
 
 // PID parameters
-float Kp = 5.0;
-float Ki = 0.1;
-float Kd = 0.5;
+float Kp = 2;
+float Ki = 0.07;
+float Kd = 15;
 float prevError[2] = {0, 0};
 float integral[2] = {0, 0};
 float integralLimit = 10.0;
@@ -40,7 +43,10 @@ int x_axis = 0, y_axis = 1;
 
 // float data[]; 
 float prevData[2] = {0, 0};
-int completionStatus = 0;
+int completionStatus = 0; 
+
+int tiltX; 
+int tiltY;
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -60,15 +66,15 @@ void receiveData(int byteCount) {
     }
 
     // Combine high and low bytes into 16-bit signed integers
-    currentX = (int16_t)((buffer[0] << 8) | buffer[1]) * 230 / 1920 ; // current_x
-    currentY = (int16_t)((buffer[2] << 8) | buffer[3]) * 230 / 1920 ; // current_y
-    desiredX = (int16_t)((buffer[4] << 8) | buffer[5]) * 230 / 1920 ; // desired_x
-    desiredY = (int16_t)((buffer[6] << 8) | buffer[7]) * 230 / 1920 ; // desired_y
+    currentX = (int16_t)((buffer[0] << 8) | buffer[1]); // current_x
+    currentY = (int16_t)((buffer[2] << 8) | buffer[3]); // current_y
+    desiredX = (int16_t)((buffer[4] << 8) | buffer[5]); // desired_x
+    desiredY = (int16_t)((buffer[6] << 8) | buffer[7]); // desired_y
 
-    receivedData[0] = map(currentX, 0, 1080, 0, 230);
-    receivedData[1] = map(currentY, 0, 1080, 0, 230);
-    receivedData[2] = map(desiredX, 0, 1080, 0, 230);
-    receivedData[3] = map(desiredY, 0, 1080, 0, 230);
+    receivedData[0] = map(currentX, 0, 640, 0, 50);
+    receivedData[1] = map(currentY, 0, 480, 0, 50);
+    receivedData[2] = map(desiredX, 0, 640, 0, 50);
+    receivedData[3] = map(desiredY, 0, 480, 0, 50);
 
   }
 }
@@ -79,8 +85,8 @@ void receiveData(int byteCount) {
 /////////////////////////////////////////////////////////////////////////////
 
 // PID function to compute motor adjustments
-float PIDControl(float currentPosition, float desiredPosition, int axis) {
-    float error = desiredPosition - currentPosition;
+int PIDControl(int currentPosition, int desiredPosition, int axis) {
+    int error = desiredPosition - currentPosition;
 
     // Reset integral if the corresponding value has changed
     if (receivedData[axis + 2] != prevData[axis]) {
@@ -91,17 +97,17 @@ float PIDControl(float currentPosition, float desiredPosition, int axis) {
     integral[axis] += error;
     integral[axis] = constrain(integral[axis], -integralLimit, integralLimit);
 
-    float derivative = error - prevError[axis];
-    float output = (Kp * error) + (Ki * integral[axis]) + (Kd * derivative);
+    int derivative = currentPosition - prevError[axis];
+    int output = (Kp * error) + (Ki * integral[axis]) + (Kd * derivative);
     prevError[axis] = error;
 
     return output;
 }
 
 // Function to move motorX to a specific angle
-void moveMotorX(Servo &motor, float angle) {
+void moveMotorX(Servo &motor, int angle) {
     // Adjust angle relative to the base angle
-    float adjustedAngle = BASE_ANGLE_X + angle;
+    int adjustedAngle = BASE_ANGLE_X + angle;
 
     // Constrain the angle within min/max bounds
     adjustedAngle = constrain(adjustedAngle, MIN_ANGLE_X, MAX_ANGLE_X);
@@ -109,9 +115,10 @@ void moveMotorX(Servo &motor, float angle) {
     motor.write(adjustedAngle);
 }
 
-void moveMotorY(Servo &motor, float angle) {
+// Function to move motorX to a specific angle
+void moveMotorY(Servo &motor, int angle) {
     // Adjust angle relative to the base angle
-    float adjustedAngle = BASE_ANGLE_Y + angle;
+    int adjustedAngle = BASE_ANGLE_Y + angle;
 
     // Constrain the angle within min/max bounds
     adjustedAngle = constrain(adjustedAngle, MIN_ANGLE_Y, MAX_ANGLE_Y);
@@ -120,18 +127,25 @@ void moveMotorY(Servo &motor, float angle) {
 }
 
 // Function to control motors based on PID output
-void motorControl(float currentX, float currentY, float desiredX, float desiredY) {
-    // Compute PID output for X and Y axes
-    // float tiltX = PIDControl(currentX, desiredX, x_axis);
-    // float tiltY = PIDControl(currentY, desiredY, y_axis);
+void motorControl(int currentX, int currentY, int desiredX, int desiredY) {
+    // // Compute PID output for X and Y axes
+    // tiltX = PIDControl(currentX, desiredX, x_axis);
+    // tiltY = PIDControl(currentY, desiredY, y_axis);
+    // moveMotorX(motorX, tiltX);
+    // moveMotorY(motorY, tiltY);
+
+   // float newTiltX = map(tiltX, 0, 10, MIN_ANGLE_X, MAX_ANGLE_X);
+    //float newTiltY = map(tiltY, 0, 10, MIN_ANGLE_Y, MAX_ANGLE_Y);
+    //moveMotorX(motorX, newTiltX);
+    //moveMotorY(motorY, newTiltY);
     
     // Without PID control  (Use this)
-    float tiltX = desiredX - currentX;
-    float tiltY = desiredY - currentY;
-
-    // Control Motors
+    tiltX = (desiredX - currentX)*2.0;
+    tiltY = (desiredY - currentY)*2.0;
     moveMotorX(motorX, tiltX);
     moveMotorY(motorY, tiltY);
+
+
     //Serial.println(tiltX);
     //Serial.println(tiltY);
 
@@ -160,21 +174,28 @@ void loop() {
     //For running actual
     while (completionStatus == 0){
         motorControl(receivedData[0], receivedData[1], receivedData[2], receivedData[3]);
-        //Serial.println(receivedData);
-        // Print the received positions to Serial Monitor if you want
-        // Print receivedData as CSV for MATLAB
-        Serial.print(receivedData[0]); Serial.print(",");
-        Serial.print(receivedData[1]); Serial.print(",");
-        Serial.print(receivedData[2]); Serial.print(",");
-        Serial.println(receivedData[3]); // Last value with newline
-        delay(20);
+        // Print the received positions to Serial Monitor if you want 
+        Serial.print("X1: ");
+        Serial.print(receivedData[0]); Serial.print(",     "); 
+        Serial.print("Y1: ");
+        Serial.print(receivedData[1]); Serial.print(",     "); 
+        Serial.print("X2: ");
+        Serial.print(receivedData[2]); Serial.print(",     "); 
+        Serial.print("Y2: ");
+        Serial.print(receivedData[3]), Serial.print(",     "); // Last value with newline
+        Serial.print("diff_X: ");
+        Serial.print(tiltX); Serial.print(",     "); 
+        Serial.print("diff_Y: ");
+        Serial.println(tiltY); Serial.print(",     "); 
+      
+       // delay(20);
     }
 
 
-    // // For test only 
+    // For test only 
     // moveMotorX(motorX, 0);
     // moveMotorY(motorY, 0);
-    // delay(10000);
+    // delay(3000);
     
     // float currentX[5] = {100, 100, 100, 100, 100};
     // float currentY[5] = {100, 100, 100, 100, 100};
@@ -183,7 +204,7 @@ void loop() {
 
     // for (int i = 0; i < 5; i++){
     //   motorControl(currentX[i], currentY[i], desiredX[i], desiredY[i]);
-    //   delay(200);
+    //   delay(4000);
     // }
     
 }
