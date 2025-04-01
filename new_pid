@@ -1,0 +1,191 @@
+#include <Arduino.h>
+#include <Servo.h>
+#include <Wire.h>
+
+// Servo objects for X and Y axes
+Servo motorX, motorY;
+
+////////////////////////////////////////////
+// I2C Settings
+#define I2C_ADDR 0x08          // Must match Pi's address
+#define EXPECTED_BYTES 8       // 4x int16_t (currentX, currentY, desiredX, desiredY)
+
+// Servo angle limits (calibrate these!)
+#define BASE_ANGLE_X 43        // Neutral position X
+#define MIN_ANGLE_X (BASE_ANGLE_X - 8)  // Wider tilt range
+#define MAX_ANGLE_X (BASE_ANGLE_X + 8)
+#define BASE_ANGLE_Y 50        // Neutral position Y
+#define MIN_ANGLE_Y (BASE_ANGLE_Y - 6)
+#define MAX_ANGLE_Y (BASE_ANGLE_Y + 6)
+
+////////////////////////////////////////////
+// PID Control
+float Kp = 2.2;                // Proportional gain
+float Ki = 0.1;               // Integral gain
+float Kd = 0.7;              // Derivative gain
+float integralLimit = 15.0;    // Anti-windup
+
+// Global variables
+float prev_current_x = 0, prev_current_y = 0;
+
+// Axis identifiers
+const int x_axis = 0;
+const int y_axis = 1;
+
+// PID state variables
+float prevError[2] = {0, 0};
+float integral[2] = {0, 0};
+unsigned long lastPIDTime = 0;
+
+// I2C Data
+int16_t current_x = 0, current_y = 0;
+int16_t desired_x = 0, desired_y = 0;
+
+////////////////////////////////////////////
+// I2C Receive Callback
+void receiveData(int byteCount) {
+  if (byteCount >= EXPECTED_BYTES) {
+    uint8_t buffer[EXPECTED_BYTES];
+    for (int i = 0; i < EXPECTED_BYTES && Wire.available(); i++) {
+      buffer[i] = Wire.read();
+    }
+    
+    // Reconstruct 16-bit signed integers
+    current_x = (int16_t)((buffer[0] << 8) | buffer[1]);
+    current_y = (int16_t)((buffer[2] << 8) | buffer[3]);
+    desired_x = (int16_t)((buffer[4] << 8) | buffer[5]);
+    desired_y = (int16_t)((buffer[6] << 8) | buffer[7]);
+  }
+}
+
+////////////////////////////////////////////
+// PID Controller with Delta Time
+float PIDControl(float current, float target, int axis) {
+  // Time calculations
+  unsigned long now = millis();
+  float deltaTime = (now - lastPIDTime) / 1000.0;
+  lastPIDTime = now;
+  if (deltaTime <= 0 || deltaTime > 0.5) deltaTime = 0.02;
+
+  float error = target - current;
+  float abs_error = abs(error);
+  float velocity = (axis == x_axis) ? 
+                  (current - prev_current_x)/deltaTime : 
+                  (current - prev_current_y)/deltaTime;
+
+  // Dynamic gains
+  float dynamic_Kp = Kp * (1.0 + 0.5 * tanh(abs_error/30.0));
+  float dynamic_Kd = Kd * (1.0 + 0.3 * (1.0 - tanh(abs_error/50.0)));
+  float dynamic_Ki = Ki * (1.0 - 0.6 * tanh(fabs(velocity)/400.0));
+
+  // Error zone-based control
+  if (abs_error > 60) {
+    dynamic_Kp *= 1.5;
+    dynamic_Kd *= 0.7;
+    dynamic_Ki = 0;
+  } 
+  else if (abs_error > 20) {
+    dynamic_Kp *= 1.0;
+  } 
+  else {
+    dynamic_Kp *= 0.8;
+    dynamic_Kd *= 1.4;
+  }
+
+  // Integral handling
+  if (abs(target - prevError[axis]) > 30) {
+    integral[axis] *= 0.5;
+  }
+  integral[axis] += error * deltaTime;
+  integral[axis] = constrain(integral[axis], -integralLimit, integralLimit);
+
+  // Derivative calculation
+  float derivative = -velocity;
+  
+  // Core PID output
+  float output = (dynamic_Kp * error) + 
+                (dynamic_Ki * integral[axis]) + 
+                (dynamic_Kd * derivative);
+
+  // Adaptive feedforward
+  float feedforward = (0.3 + 0.2 * tanh(abs_error/40.0)) * error;
+  output += feedforward;
+
+  // Velocity-dependent limiting
+  float max_output = 15.0 + 15.0 * (1.0 - tanh(abs_error/50.0));
+  output = constrain(output, -max_output, max_output);
+
+  prevError[axis] = error;
+  return output;
+}
+
+// Coordinate Scaling (Match Pi's 1280x720 resolution)
+void scaleCoordinates() {
+  // Map X: 0-1280 → 0-230, Y: 0-720 → 0-230 (inverted Y-axis)
+  current_x = map(current_x, 0, 1280, 0, 230);
+  current_y = map(current_y, 0, 720, 0, 230);
+  desired_x = map(desired_x, 0, 1280, 0, 230);
+  desired_y = map(desired_y, 0, 720, 0, 230);
+}
+
+void moveMotor(Servo &motor, float output, float baseAngle) {
+  // Overcome static friction
+  if (abs(output) < 1.5) {
+    output = (output > 0) ? 1.8 : -1.8;
+  }
+  float angle = baseAngle + output;
+  angle = constrain(angle, 
+                   (baseAngle == BASE_ANGLE_X) ? MIN_ANGLE_X : MIN_ANGLE_Y,
+                   (baseAngle == BASE_ANGLE_X) ? MAX_ANGLE_X : MAX_ANGLE_Y);
+  
+  motor.write(angle);
+}
+
+////////////////////////////////////////////
+// Main Control Logic
+void updateMotors() {
+  scaleCoordinates();
+
+  // Calculate ball velocity
+  float deltaTime = 0.02;
+  float ball_velocity_x = (current_x - prev_current_x)/deltaTime;
+  float ball_velocity_y = (current_y - prev_current_y)/deltaTime;
+  prev_current_x = current_x;
+  prev_current_y = current_y;
+
+  // Run PID
+  float tiltX = PIDControl(current_x, desired_x, x_axis);
+  float tiltY = PIDControl(current_y, desired_y, y_axis);
+
+  moveMotor(motorX, tiltX, BASE_ANGLE_X);
+  moveMotor(motorY, tiltY, BASE_ANGLE_Y);
+
+  // Debug output
+  Serial.print("Tilt: ");
+  Serial.print(tiltX); Serial.print(", "); Serial.println(tiltY);
+}
+
+////////////////////////////////////////////
+// Setup & Loop
+void setup() {
+  Serial.begin(115200);
+  
+  motorX.attach(3);  // PWM pin for X-axis
+  motorY.attach(5);  // PWM pin for Y-axis
+  motorX.write(BASE_ANGLE_X);
+  motorY.write(BASE_ANGLE_Y);
+
+  Wire.begin(I2C_ADDR);
+  Wire.onReceive(receiveData);
+  
+  Serial.println("System Ready");
+}
+
+void loop() {
+  static unsigned long lastUpdate = 0;
+  
+  if (millis() - lastUpdate >= 20) {  // 50Hz update rate
+    updateMotors();
+    lastUpdate = millis();
+  }
+}
