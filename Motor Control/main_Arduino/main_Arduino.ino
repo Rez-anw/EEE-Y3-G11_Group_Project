@@ -110,27 +110,27 @@ int PIDControl(int currentPosition, int desiredPosition, int axis) {
 
 // Function to move motorX to a specific angle
 void moveMotorX(Servo &motor, int angle) {
-    int adjustedAngle = constrain(angle, -15, 15);
+    int adjustedAngle_X = constrain(angle, -15, 15);
     // Adjust angle relative to the base angle
-    adjustedAngle = BASE_ANGLE_Y + angle;
+    adjustedAngle_X = BASE_ANGLE_X + angle;
 
     // Constrain the angle within min/max bounds
-    adjustedAngle = constrain(adjustedAngle, MIN_ANGLE_Y, MAX_ANGLE_Y);
+    adjustedAngle = constrain(adjustedAngle_X, MIN_ANGLE_X, MAX_ANGLE_X);
 
-    motor.write(adjustedAngle);
+    motor.write(adjustedAngle_X);
 }
 
 // Function to move motorX to a specific angle
 void moveMotorY(Servo &motor, int angle) {
 
-    int adjustedAngle = constrain(angle, -15, 15);
+    int adjustedAngle_Y = constrain(angle, -15, 15);
     // Adjust angle relative to the base angle
-    adjustedAngle = BASE_ANGLE_Y - angle;
+    adjustedAngle_Y = BASE_ANGLE_Y - angle;
 
     // Constrain the angle within min/max bounds
-    adjustedAngle = constrain(adjustedAngle, MIN_ANGLE_Y, MAX_ANGLE_Y);
+    adjustedAngle_Y = constrain(adjustedAngle_Y, MIN_ANGLE_Y, MAX_ANGLE_Y);
 
-    motor.write(adjustedAngle);
+    motor.write(adjustedAngle_Y);
 }
 
 // Function to control motors based on PID output
