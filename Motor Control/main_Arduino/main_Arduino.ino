@@ -18,20 +18,20 @@ Servo motorX, motorY;
 ////////////////////////////////////////////
 
 // Minimum and maximum motor angles
-#define diffX 8
+#define diffX 12
 
 #define BASE_ANGLE_X 40
 #define MIN_ANGLE_X (BASE_ANGLE_X - diffX)
 #define MAX_ANGLE_X (BASE_ANGLE_X + diffX)
 
-#define diffY 8
+#define diffY 12
 #define BASE_ANGLE_Y 50
 #define MIN_ANGLE_Y (BASE_ANGLE_Y - diffY)
 #define MAX_ANGLE_Y (BASE_ANGLE_Y + diffY)
 
 
 // PID parameters
-float Kp = 0.1;
+float Kp = 1;
 float Ki = 0;
 float Kd = 0;
 float prevError[2] = {0, 0};
@@ -110,9 +110,9 @@ int PIDControl(int currentPosition, int desiredPosition, int axis) {
 
 // Function to move motorX to a specific angle
 void moveMotorX(Servo &motor, int angle) {
-    int adjustedAngle = constrain(angle, -10, 10);
+    int adjustedAngle = constrain(angle, -15, 15);
     // Adjust angle relative to the base angle
-    adjustedAngle = BASE_ANGLE_Y - angle;
+    adjustedAngle = BASE_ANGLE_Y + angle;
 
     // Constrain the angle within min/max bounds
     adjustedAngle = constrain(adjustedAngle, MIN_ANGLE_Y, MAX_ANGLE_Y);
@@ -123,7 +123,7 @@ void moveMotorX(Servo &motor, int angle) {
 // Function to move motorX to a specific angle
 void moveMotorY(Servo &motor, int angle) {
 
-    int adjustedAngle = constrain(angle, -10, 10);
+    int adjustedAngle = constrain(angle, -15, 15);
     // Adjust angle relative to the base angle
     adjustedAngle = BASE_ANGLE_Y - angle;
 
