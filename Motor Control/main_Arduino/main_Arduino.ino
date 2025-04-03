@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <Servo.h>
-#include <Wire.h>
+#include <Wire.h> 
+#include <stdio.h>
+#include <stdlib.h>
 
 // Servo objects for X-axis and Y-axis motors
 Servo motorX, motorY;
@@ -18,22 +20,22 @@ Servo motorX, motorY;
 ////////////////////////////////////////////
 
 // Minimum and maximum motor angles
-#define diffX 12
+#define diffX 9
 
-#define BASE_ANGLE_X 40
+#define BASE_ANGLE_X 45
 #define MIN_ANGLE_X (BASE_ANGLE_X - diffX)
 #define MAX_ANGLE_X (BASE_ANGLE_X + diffX)
 
-#define diffY 12
-#define BASE_ANGLE_Y 50
-#define MIN_ANGLE_Y (BASE_ANGLE_Y - diffY)
+#define diffY 9
+#define BASE_ANGLE_Y 52
+#define MIN_ANGLE_Y (BASE_ANGLE_Y - diffY ) 
 #define MAX_ANGLE_Y (BASE_ANGLE_Y + diffY)
 
 
 // PID parameters
 float Kp = 1;
-float Ki = 0;
-float Kd = 0;
+float Ki = 0.01;
+float Kd = 1;
 float prevError[2] = {0, 0};
 float integral[2] = {0, 0};
 float integralLimit = 5.0;
@@ -42,11 +44,19 @@ int x_axis = 0, y_axis = 1;
 
 // float data[]; 
 float prevData[2] = {0, 0};
-int completionStatus = 0; 
+int completionStatus = 0;  
+
+const char *filename = "C:\EEE\GP-G11\EEE-Y3-G11_Group_Project\Motor Control\main_Arduino\data.csv";  // Specify the CSV file name
+
 
 int tiltX; 
 int tiltY;
 
+
+//  Variables for EMA
+float alpha = 0.7; // Smoothing factor for EMA (adjustable)
+float emaCurrentX = 0.0, emaCurrentY = 0.0;
+float emaDesiredX = 0.0, emaDesiredY = 0.0;
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -70,20 +80,31 @@ void receiveData(int byteCount) {
     desiredX = (int16_t)((buffer[4] << 8) | buffer[5]); // desired_x
     desiredY = (int16_t)((buffer[6] << 8) | buffer[7]); // desired_y
 
-    // receivedData[0] = map(currentX, 0, 640, 0, 100);
-    // receivedData[1] = map(currentY, 0, 480, 0, 100);
-    // receivedData[2] = map(desiredX, 0, 640, 0, 100);
-    // receivedData[3] = map(desiredY, 0, 480, 0, 100); 
+    receivedData[0] = map(currentX, 0, 1200, 0, 120);
+    receivedData[1] = map(currentY, 0, 1200, 0, 120);
+    receivedData[2] = map(desiredX, 0, 1200, 0, 120);
+    receivedData[3] = map(desiredY, 0, 1200, 0, 120); 
 
-      receivedData[0] = currentX;
-      receivedData[1] = currentY;
-      receivedData[2] = desiredX;
-      receivedData[3] = desiredY; 
+    //   receivedData[0] = currentX;
+    //   receivedData[1] = currentY;
+    //   receivedData[2] = desiredX;
+    //   receivedData[3] = desiredY;  
+
+      smoothData(currentX, currentY, desiredX, desiredY);
 
   }
 }
 
+// Separate function for EMA smoothing
+void smoothData(int currentX, int currentY, int desiredX, int desiredY) {
+  // Update EMA values for current positions
+  emaCurrentX = alpha * currentX + (1 - alpha) * emaCurrentX;
+  emaCurrentY = alpha * currentY + (1 - alpha) * emaCurrentY;
 
+  // Update EMA values for desired positions
+  emaDesiredX = alpha * desiredX + (1 - alpha) * emaDesiredX;
+  emaDesiredY = alpha * desiredY + (1 - alpha) * emaDesiredY;
+}
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -98,7 +119,12 @@ int PIDControl(int currentPosition, int desiredPosition, int axis) {
         prevData[axis] = receivedData[axis+2];
     }
 
-    integral[axis] += error;
+    if (abs(error) < 5) {
+        integral[axis] += error;
+    } else {
+        integral[axis] = 0;
+    }
+
     integral[axis] = constrain(integral[axis], -integralLimit, integralLimit);
 
     int derivative = error - prevError[axis];
@@ -110,36 +136,39 @@ int PIDControl(int currentPosition, int desiredPosition, int axis) {
 
 // Function to move motorX to a specific angle
 void moveMotorX(Servo &motor, int angle) {
-    int adjustedAngle_X = constrain(angle, -15, 15);
+    //int adjustedAngle = constrain(angle, -15, 15);
     // Adjust angle relative to the base angle
-    adjustedAngle_X = BASE_ANGLE_X + angle;
+    int adjustedAngle = BASE_ANGLE_X + angle;
 
     // Constrain the angle within min/max bounds
-    adjustedAngle = constrain(adjustedAngle_X, MIN_ANGLE_X, MAX_ANGLE_X);
+    adjustedAngle = constrain(adjustedAngle, MIN_ANGLE_X, MAX_ANGLE_X);
 
-    motor.write(adjustedAngle_X);
+    motor.write(adjustedAngle);
+    //Serial.print(adjustedAngle);
 }
 
 // Function to move motorX to a specific angle
 void moveMotorY(Servo &motor, int angle) {
 
-    int adjustedAngle_Y = constrain(angle, -15, 15);
+    //int adjustedAngle = constrain(angle, -15, 15);
     // Adjust angle relative to the base angle
-    adjustedAngle_Y = BASE_ANGLE_Y - angle;
+    int adjustedAngle = BASE_ANGLE_Y - angle;
 
     // Constrain the angle within min/max bounds
-    adjustedAngle_Y = constrain(adjustedAngle_Y, MIN_ANGLE_Y, MAX_ANGLE_Y);
+    adjustedAngle = constrain(adjustedAngle, MIN_ANGLE_Y, MAX_ANGLE_Y);
 
-    motor.write(adjustedAngle_Y);
+    motor.write(adjustedAngle);
+    //Serial.print(adjustedAngle);
 }
 
 // Function to control motors based on PID output
 void motorControl(int currentX, int currentY, int desiredX, int desiredY) {
-    // // Compute PID output for X and Y axes
-    tiltX = PIDControl(currentX, desiredX, x_axis);
-    tiltY = PIDControl(currentY, desiredY, y_axis);
-    moveMotorX(motorX, tiltX);
-    moveMotorY(motorY, tiltY);
+    // Compute PID output for X and Y axes
+    // tiltX = PIDControl(currentX, desiredX, x_axis);
+    // tiltY = PIDControl(currentY, desiredY, y_axis);
+    // moveMotorX(motorX, tiltX); 
+    // moveMotorY(motorY, tiltY);
+
 
    // float newTiltX = map(tiltX, 0, 10, MIN_ANGLE_X, MAX_ANGLE_X);
     //float newTiltY = map(tiltY, 0, 10, MIN_ANGLE_Y, MAX_ANGLE_Y);
@@ -147,21 +176,37 @@ void motorControl(int currentX, int currentY, int desiredX, int desiredY) {
     //moveMotorY(motorY, newTiltY);
     
     // Without PID control  (Use this)
-    // tiltX = (desiredX - currentX)*2.0;
-    // tiltY = (desiredY - currentY)*2.0;
-    // moveMotorX(motorX, tiltX);
-    // moveMotorY(motorY, tiltY);
+    tiltX = (desiredX - currentX) ;
+    tiltY = (desiredY - currentY);
+    moveMotorX(motorX, tiltX);
+    moveMotorY(motorY, tiltY);
 
 
     //Serial.println(tiltX);
     //Serial.println(tiltY);
 
+} 
+
+// Function to write X1 and Y1 to a CSV file
+void write_to_csv(int X1, int Y1,int X2,int Y2,const char *filename) {
+    FILE *file = fopen(filename, "a+");  // Open the file in append mode
+    if (file == NULL) {
+        perror("Error opening file");
+        return;
+    }
+
+    // Write the data to the file in CSV format
+    fprintf(file, "%d,%d,%d,%d\n", X1,Y1,X2,Y2);
+
+    // Close the file
+    fclose(file);
 }
+
 
 void setup() {
     // Attach servos to pins that can output PWM signals
     // Two motors
-    motorX.attach(5);
+    motorX.attach(6);
     motorY.attach(3);
 
     moveMotorX(motorX, 0);
@@ -180,20 +225,26 @@ void loop() {
     
     //For running actual
     while (completionStatus == 0){
-        motorControl(receivedData[0], receivedData[1], receivedData[2], receivedData[3]);
+        motorControl(emaCurrentX, emaCurrentY, emaDesiredX, emaDesiredY); 
+        // write_to_csv( emaCurrentX, emaCurrentY, emaDesiredX, emaDesiredY, filename);
+
+        // moveMotorX(motorX, 0);
+        // delay(1);
+        // moveMotorY(motorY, 0);
+
         // Print the received positions to Serial Monitor if you want 
         Serial.print("X1: ");
-        Serial.print(receivedData[0]); Serial.print(",   "); 
+        Serial.print(emaCurrentX); Serial.print(",   "); 
         Serial.print("Y1: ");
-        Serial.print(receivedData[1]); Serial.print(",   "); 
+        Serial.print(emaCurrentY); Serial.print(",   "); 
         Serial.print("X2: ");
-        Serial.print(receivedData[2]); Serial.print(",   "); 
+        Serial.print(emaDesiredX); Serial.print(",   "); 
         Serial.print("Y2: ");
-        Serial.print(receivedData[3]), Serial.print(",   "); // Last value with newline
-        Serial.print("diff_X: ");
-        Serial.print(tiltX); Serial.print(",   "); 
-        Serial.print("diff_Y: ");
-        Serial.println(tiltY); Serial.print(""); 
+        Serial.print(emaDesiredY), Serial.println(",   "); // Last value with newline
+        // Serial.print("diff_X: ");
+        // Serial.print(tiltX); Serial.print(",   "); 
+        // Serial.print("diff_Y: ");
+        // Serial.println(tiltY); Serial.print(""); 
       
         //delay(10);
     }
