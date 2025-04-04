@@ -33,9 +33,9 @@ Servo motorX, motorY;
 
 
 // PID parameters
-float Kp = 1;
-float Ki = 0.01;
-float Kd = 1;
+float Kp[2] = {1, 1]
+float Ki[2] = {0.01, 0.1};
+float Kd[2] = {1,1};
 float prevError[2] = {0, 0};
 float integral[2] = {0, 0};
 float integralLimit = 5.0;
@@ -49,8 +49,8 @@ int completionStatus = 0;
 const char *filename = "C:\EEE\GP-G11\EEE-Y3-G11_Group_Project\Motor Control\main_Arduino\data.csv";  // Specify the CSV file name
 
 
-int tiltX; 
-int tiltY;
+float tiltX; 
+float tiltY;
 
 
 //  Variables for EMA
@@ -95,7 +95,7 @@ void receiveData(int byteCount) {
   }
 }
 
-// Separate function for EMA smoothing
+// Function for EMA smoothing
 void smoothData(int currentX, int currentY, int desiredX, int desiredY) {
   // Update EMA values for current positions
   emaCurrentX = alpha * currentX + (1 - alpha) * emaCurrentX;
@@ -110,8 +110,8 @@ void smoothData(int currentX, int currentY, int desiredX, int desiredY) {
 /////////////////////////////////////////////////////////////////////////////
 
 // PID function to compute motor adjustments
-int PIDControl(int currentPosition, int desiredPosition, int axis) {
-    int error = desiredPosition - currentPosition;
+float PIDControl(int currentPosition, int desiredPosition, int axis) {
+    float error = desiredPosition - currentPosition;
 
     // Reset integral if the corresponding value has changed
     if (receivedData[axis + 2] != prevData[axis]) {
@@ -127,8 +127,8 @@ int PIDControl(int currentPosition, int desiredPosition, int axis) {
 
     integral[axis] = constrain(integral[axis], -integralLimit, integralLimit);
 
-    int derivative = error - prevError[axis];
-    int output = (Kp * error) + (Ki * integral[axis]) + (Kd * derivative);
+    float derivative = error - prevError[axis];
+    float output = (Kp[axis] * error) + (Ki[axis] * integral[axis]) + (Kd[axis] * derivative);
     prevError[axis] = error;
 
     return output;
@@ -164,10 +164,10 @@ void moveMotorY(Servo &motor, int angle) {
 // Function to control motors based on PID output
 void motorControl(int currentX, int currentY, int desiredX, int desiredY) {
     // Compute PID output for X and Y axes
-    // tiltX = PIDControl(currentX, desiredX, x_axis);
-    // tiltY = PIDControl(currentY, desiredY, y_axis);
-    // moveMotorX(motorX, tiltX); 
-    // moveMotorY(motorY, tiltY);
+    tiltX = PIDControl(currentX, desiredX, x_axis);
+    tiltY = PIDControl(currentY, desiredY, y_axis);
+    moveMotorX(motorX, tiltX); 
+    moveMotorY(motorY, tiltY);
 
 
    // float newTiltX = map(tiltX, 0, 10, MIN_ANGLE_X, MAX_ANGLE_X);
@@ -240,11 +240,11 @@ void loop() {
         Serial.print("X2: ");
         Serial.print(emaDesiredX); Serial.print(",   "); 
         Serial.print("Y2: ");
-        Serial.print(emaDesiredY), Serial.println(",   "); // Last value with newline
-        // Serial.print("diff_X: ");
-        // Serial.print(tiltX); Serial.print(",   "); 
-        // Serial.print("diff_Y: ");
-        // Serial.println(tiltY); Serial.print(""); 
+        Serial.print(emaDesiredY), Serial.print(",   "); // Last value with newline
+        Serial.print("diff_X: ");
+        Serial.print(tiltX), Serial.print(",   "); 
+        Serial.print("diff_Y: ");
+        Serial.print(tiltY), Serial.println(""); 
       
         //delay(10);
     }
