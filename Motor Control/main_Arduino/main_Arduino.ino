@@ -240,11 +240,11 @@ void loop() {
         Serial.print("X2: ");
         Serial.print(emaDesiredX); Serial.print(",   "); 
         Serial.print("Y2: ");
-        Serial.print(emaDesiredY), Serial.print(",   "); // Last value with newline
-        Serial.print("diff_X: ");
-        Serial.print(tiltX), Serial.print(",   "); 
-        Serial.print("diff_Y: ");
-        Serial.print(tiltY), Serial.println(""); 
+        Serial.print(emaDesiredY), Serial.println(",   "); // Last value with newline
+        // Serial.print("diff_X: ");
+        // Serial.print(tiltX), Serial.print(",   "); 
+        // Serial.print("diff_Y: ");
+        // Serial.print(tiltY), Serial.println(""); 
       
         //delay(10);
     }
