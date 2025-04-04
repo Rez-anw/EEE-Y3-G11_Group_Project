@@ -20,22 +20,23 @@ Servo motorX, motorY;
 ////////////////////////////////////////////
 
 // Minimum and maximum motor angles
-#define diffX 9
+#define diffX 6
 
 #define BASE_ANGLE_X 45
 #define MIN_ANGLE_X (BASE_ANGLE_X - diffX)
 #define MAX_ANGLE_X (BASE_ANGLE_X + diffX)
 
-#define diffY 9
+#define diffY 6
 #define BASE_ANGLE_Y 52
 #define MIN_ANGLE_Y (BASE_ANGLE_Y - diffY ) 
 #define MAX_ANGLE_Y (BASE_ANGLE_Y + diffY)
 
 
 // PID parameters
-float Kp[2] = {1, 1};
-float Ki[2] = {0.01, 0.1};
-float Kd[2] = {1,1};
+float Kp[2] = {0.5, 0.5};
+float Ki[2] = {0.01, 0.01};
+float Kd[2] = {10,10};
+float Kv[2] = {1, 1};
 float prevError[2] = {0, 0};
 float integral[2] = {0, 0};
 float integralLimit = 5.0;
@@ -109,30 +110,41 @@ void smoothData(int currentX, int currentY, int desiredX, int desiredY) {
 
 /////////////////////////////////////////////////////////////////////////////
 
-// PID function to compute motor adjustments
-float PIDControl(int currentPosition, int desiredPosition, int axis) {
+// Add velocity gain parameter
+
+float PIDControl(int currentPosition, int desiredPosition, int currentVelocity, int axis) {
     float error = desiredPosition - currentPosition;
 
-    // Reset integral if the corresponding value has changed
+    // Reset integral if the target position has changed
     if (receivedData[axis + 2] != prevData[axis]) {
         integral[axis] = 0;
-        prevData[axis] = receivedData[axis+2];
+        prevData[axis] = receivedData[axis + 2];
     }
 
+    // Accumulate integral if the error is small
     if (abs(error) < 5) {
         integral[axis] += error;
     } else {
         integral[axis] = 0;
     }
 
+    // Constrain integral to prevent windup
     integral[axis] = constrain(integral[axis], -integralLimit, integralLimit);
 
+    // Calculate derivative (change in error)
     float derivative = error - prevError[axis];
-    float output = (Kp[axis] * error) + (Ki[axis] * integral[axis]) + (Kd[axis] * derivative);
-    prevError[axis] = error;
+
+    // Compute the velocity feedforward term
+    float velocityCompensation = Kv[axis] * currentVelocity;
+
+    // Compute final output including velocity
+    float output = (Kp[axis] * error) + (Ki[axis] * integral[axis]) + (Kd[axis] * derivative) + velocityCompensation;
+    
+    prevError[axis] = error;  // Store current error for next loop
 
     return output;
 }
+
 
 // Function to move motorX to a specific angle
 void moveMotorX(Servo &motor, int angle) {
@@ -164,8 +176,9 @@ void moveMotorY(Servo &motor, int angle) {
 // Function to control motors based on PID output
 void motorControl(int currentX, int currentY, int desiredX, int desiredY) {
     // Compute PID output for X and Y axes
-    tiltX = PIDControl(currentX, desiredX, x_axis);
-    tiltY = PIDControl(currentY, desiredY, y_axis);
+    tiltX = PIDControl(emaCurrentX, emaDesiredX, (emaCurrentX - prevError[x_axis]), x_axis);
+    tiltY = PIDControl(emaCurrentY, emaDesiredY, (emaCurrentY - prevError[y_axis]), y_axis);
+
     moveMotorX(motorX, tiltX); 
     moveMotorY(motorY, tiltY);
 
@@ -240,11 +253,11 @@ void loop() {
         Serial.print("X2: ");
         Serial.print(emaDesiredX); Serial.print(",   "); 
         Serial.print("Y2: ");
-        Serial.print(emaDesiredY), Serial.println(",   "); // Last value with newline
-        // Serial.print("diff_X: ");
-        // Serial.print(tiltX), Serial.print(",   "); 
-        // Serial.print("diff_Y: ");
-        // Serial.print(tiltY), Serial.println(""); 
+        Serial.print(emaDesiredY), Serial.print(",   "); // Last value with newline
+        Serial.print("diff_X: ");
+        Serial.print(tiltX), Serial.print(",   "); 
+        Serial.print("diff_Y: ");
+        Serial.print(tiltY), Serial.println(""); 
       
         //delay(10);
     }
