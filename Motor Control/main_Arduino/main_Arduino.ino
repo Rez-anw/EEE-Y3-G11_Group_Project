@@ -33,7 +33,7 @@ Servo motorX, motorY;
 
 
 // PID parameters
-float Kp[2] = {1, 1]
+float Kp[2] = {1, 1};
 float Ki[2] = {0.01, 0.1};
 float Kd[2] = {1,1};
 float prevError[2] = {0, 0};
