@@ -16,10 +16,10 @@ const int PIN_SERVO_X = 6;
 const int PIN_SERVO_Y = 3;
 
 // ========== LQR Parameters ==========
-//mtx_type K_pos[2] = {-0.2244, -0.3427};
-mtx_type K_pos[2] = {-0.0036, -0.00033};
-//mtx_type K_vel = -0.4662;
-mtx_type K_vel = -0.0056;
+mtx_type K_pos[2] = {-0.2244, -0.3427};
+//mtx_type K_pos[2] = {-0.0036, -0.00033};
+mtx_type K_vel = -0.4662;
+//mtx_type K_vel = -0.0056;
 const float d_max = 3.0; // cm
 
 // ========== I2C Handling ==========
@@ -39,7 +39,7 @@ void receiveEvent(int bytes) {
 // ========== Control System ==========
 float cm_to_angle(float cm, bool is_x_axis) {
   const float max_cm = is_x_axis ? 1 : 1;         // Max board deflection in cm
-  const float max_deg = is_x_axis ? 7.0 : 8.0;        // Max allowed angle
+  const float max_deg = is_x_axis ? 7.0 : 9.0;        // Max allowed angle
   return constrain(cm * (max_deg / max_cm), -max_deg, max_deg);
 }
 
@@ -89,16 +89,9 @@ void lqr_control() {
   uy += fr * sin(theta) * (9.82/1.2);
 
 
-  static float prev_ux = 0, prev_uy = 0;
 
-  float filtered_ux = ALPHA * ux + (1 - ALPHA) * prev_ux;
-  float filtered_uy = ALPHA * uy + (1 - ALPHA) * prev_uy;
-
-  prev_ux = filtered_ux;
-  prev_uy = filtered_uy;
-
-  servoX.write(45 + cm_to_angle(filtered_ux, true));
-  servoY.write(52 + cm_to_angle(filtered_uy, false));
+  servoX.write(45 + cm_to_angle(ux, true));
+  servoY.write(52 + cm_to_angle(uy, false));
 
 }
 
