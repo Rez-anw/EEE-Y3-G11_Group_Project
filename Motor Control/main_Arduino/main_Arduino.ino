@@ -20,23 +20,23 @@ Servo motorX, motorY;
 ////////////////////////////////////////////
 
 // Minimum and maximum motor angles
-#define diffX 10
+#define diffX 9
 
 #define BASE_ANGLE_X 45
 #define MIN_ANGLE_X (BASE_ANGLE_X - diffX)
 #define MAX_ANGLE_X (BASE_ANGLE_X + diffX)
 
-#define diffY 10
+#define diffY 9
 #define BASE_ANGLE_Y 52
 #define MIN_ANGLE_Y (BASE_ANGLE_Y - diffY ) 
 #define MAX_ANGLE_Y (BASE_ANGLE_Y + diffY)
 
 
 // PID parameters
-float Kp[2] = {2, 2};
+float Kp[2] = {1, 1};
 float Ki[2] = {0.1, 0.1};
-float Kd[2] = {2,2};
-float Kv[2] = {1, 1};
+float Kd[2] = {0.5,0.5};
+float Kv[2] = {0, 0};
 float prevError[2] = {0, 0};
 float integral[2] = {0, 0};
 float integralLimit = 5.0;
@@ -122,12 +122,13 @@ float PIDControl(int currentPosition, int desiredPosition, int currentVelocity, 
     }
 
     // Accumulate integral if the error is small
-    if (abs(error) < 5) {
-        integral[axis] += error;
-    } else {
-        integral[axis] = 0;
-    }
+    // if (abs(error) < 5) {
+    //     integral[axis] += error;
+    // } else {
+    //     integral[axis] = 0;
+    // }
 
+    integral[axis] += error;
     // Constrain integral to prevent windup
     integral[axis] = constrain(integral[axis], -integralLimit, integralLimit);
 
@@ -184,33 +185,18 @@ void moveMotorY(Servo &motor, int angle) {
 // Function to control motors based on PID output
 void motorControl(int currentX, int currentY, int desiredX, int desiredY) {
     // Compute PID output for X and Y axes
-    // tiltX = PIDControl(emaCurrentX, emaDesiredX, (emaCurrentX - prevError[x_axis]), x_axis);
-    // tiltY = PIDControl(emaCurrentY, emaDesiredY, (emaCurrentY - prevError[y_axis]), y_axis);
+    tiltX = PIDControl(emaCurrentX, emaDesiredX, (emaCurrentX - prevError[x_axis]), x_axis);
+    tiltY = PIDControl(emaCurrentY, emaDesiredY, (emaCurrentY - prevError[y_axis]), y_axis);
 
-    // moveMotorX(motorX, tiltX); 
-    // moveMotorY(motorY, tiltY);
+    moveMotorX(motorX, tiltX); 
+    moveMotorY(motorY, tiltY);
 
-
-   // float newTiltX = map(tiltX, 0, 10, MIN_ANGLE_X, MAX_ANGLE_X);
-    //float newTiltY = map(tiltY, 0, 10, MIN_ANGLE_Y, MAX_ANGLE_Y);
-    //moveMotorX(motorX, newTiltX);
-    //moveMotorY(motorY, newTiltY);
     
     // Without PID control  (Use this)
     // tiltX = (desiredX - currentX) ;
     // tiltY = (desiredY - currentY);
     // moveMotorX(motorX, tiltX);
     // moveMotorY(motorY, tiltY);
-
-    // Without PID control  (Use this)
-    tiltX = (receivedData[2] - receivedData[0]) ;
-    tiltY = (receivedData[3] - receivedData[1]);
-    moveMotorX(motorX, tiltX);
-    moveMotorY(motorY, tiltY);
-
-
-    //Serial.println(tiltX);
-    //Serial.println(tiltY);
 
 } 
 
@@ -252,28 +238,30 @@ void loop() {
     
     //For running actual
     while (completionStatus == 0){
-        motorControl(emaCurrentX, emaCurrentY, emaDesiredX, emaDesiredY); 
+        motorControl(receivedData[0], receivedData[1], receivedData[2], receivedData[3]); 
+        //motorControl(emaCurrentX, emaCurrentY, emaDesiredX, emaDesiredY);
         // write_to_csv( emaCurrentX, emaCurrentY, emaDesiredX, emaDesiredY, filename);
+        delay(50);
+        moveMotorX(motorX, 0);
+        //delay(1);
+        moveMotorY(motorY, 0);
 
-        // moveMotorX(motorX, 0);
-        // delay(1);
-        // moveMotorY(motorY, 0);
 
         // Print the received positions to Serial Monitor if you want 
         Serial.print("X1: ");
-        Serial.print(emaCurrentX); Serial.print(",   "); 
+        Serial.print(currentX); Serial.print(",   "); 
         Serial.print("Y1: ");
-        Serial.print(emaCurrentY); Serial.print(",   "); 
+        Serial.print(currentY); Serial.print(",   "); 
         Serial.print("X2: ");
-        Serial.print(emaDesiredX); Serial.print(",   "); 
+        Serial.print(desiredX); Serial.print(",   "); 
         Serial.print("Y2: ");
-        Serial.print(emaDesiredY), Serial.print(",   "); // Last value with newline
+        Serial.print(desiredY), Serial.print(",   "); // Last value with newline
         Serial.print("diff_X: ");
         Serial.print(tiltX), Serial.print(",   "); 
         Serial.print("diff_Y: ");
         Serial.print(tiltY), Serial.println(""); 
       
-        delay(200);
+        delay(50);
     }
 
 
