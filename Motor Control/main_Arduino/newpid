@@ -7,12 +7,12 @@
 // 舵机控制相关
 Servo motorX, motorY;
 
-#define diffX 9
+#define diffX 10
 #define BASE_ANGLE_X 45
 #define MIN_ANGLE_X (BASE_ANGLE_X - diffX)
 #define MAX_ANGLE_X (BASE_ANGLE_X + diffX)
 
-#define diffY 11
+#define diffY 10
 #define BASE_ANGLE_Y 35
 #define MIN_ANGLE_Y (BASE_ANGLE_Y - diffY)
 #define MAX_ANGLE_Y (BASE_ANGLE_Y + diffY)
@@ -21,16 +21,17 @@ Servo motorX, motorY;
 #define USE_PID true
 
 // PID 参数（适配物理单位 cm）
-float Kp[2] = {15.0, 15.0};
-float Ki[2] = {0.8, 0.8};
-float Kd[2] = {3.0, 3.0};
-float Kv[2] = {0, 0};
+float Kp[2] = {20.0, 25.0};
+float Ki[2] = {1, 1};
+float Kd[2] = {4.0, 4.0};
+float Kv[2] = {2.0, 2.0};
 float prevError[2] = {0, 0};
 float integral[2] = {0, 0};
 float integralLimit = 5.0;
+int completionStatus = 0;
 
 // EMA 平滑
-float alpha = 0.7;
+float alpha = 0.9;
 float emaCurrentX = 0.0, emaCurrentY = 0.0;
 float emaDesiredX = 0.0, emaDesiredY = 0.0;
 
@@ -60,6 +61,8 @@ void receiveData(int byteCount) {
     emaCurrentY = alpha * curY_cm + (1 - alpha) * emaCurrentY;
     emaDesiredX = alpha * desX_cm + (1 - alpha) * emaDesiredX;
     emaDesiredY = alpha * desY_cm + (1 - alpha) * emaDesiredY;
+
+
   }
 }
 
@@ -78,39 +81,10 @@ void moveMotorX(Servo &motor, float angle) {
   motor.write(adjusted);
 }
 void moveMotorY(Servo &motor, float angle) {
-  int adjusted = constrain(BASE_ANGLE_Y - angle, MIN_ANGLE_Y, MAX_ANGLE_Y);
+  int adjusted = constrain(BASE_ANGLE_Y + angle, MIN_ANGLE_Y, MAX_ANGLE_Y);
   motor.write(adjusted);
 }
 
-void motorControl() {
-  float errorX = emaDesiredX - emaCurrentX;
-  float errorY = emaDesiredY - emaCurrentY;
-
-  // 死区防抖（±0.2cm 不动）
-  if (abs(errorX) < 0.2) errorX = 0;
-  if (abs(errorY) < 0.2) errorY = 0;
-
-  float tiltX = 0.0, tiltY = 0.0;
-
-#if USE_PID
-  tiltX = PIDControl(emaCurrentX, emaDesiredX, 0);
-  tiltY = PIDControl(emaCurrentY, emaDesiredY, 1);
-#else
-  // 线性映射：最大误差 ±11cm 对应最大角度 ±9°
-  tiltX = constrain(errorX * (diffX / 11.0), -diffX, diffX);
-  tiltY = constrain(errorY * (diffY / 11.0), -diffY, diffY);
-#endif
-
-  moveMotorX(motorX, tiltX);
-  moveMotorY(motorY, tiltY);
-
-  Serial.print("X1: "); Serial.print(currentX);
-  Serial.print(" Y1: "); Serial.print(currentY);
-  Serial.print(" → X2: "); Serial.print(desiredX);
-  Serial.print(" Y2: "); Serial.print(desiredY);
-  Serial.print(" | TiltX: "); Serial.print(tiltX);
-  Serial.print(" TiltY: "); Serial.println(tiltY);
-}
 
 void setup() {
   motorX.attach(6);
@@ -124,8 +98,48 @@ void setup() {
 }
 
 void loop() {
-  motorControl();  // 主控制逻辑，每帧调整
-  delay(20);       // 控制更新频率（大约 33Hz）
+  while (completionStatus == 0) {
+    // Step 1: 计算误差
+    float errorX = emaDesiredX - emaCurrentX;
+    float errorY = emaDesiredY - emaCurrentY;
+
+    // 死区抑制小震荡
+    if (abs(errorX) < 0.05) errorX = 0;
+    if (abs(errorY) < 0.05) errorY = 0;
+
+    float tiltX = 0.0, tiltY = 0.0;
+
+#if USE_PID
+    tiltX = PIDControl(emaCurrentX, emaDesiredX, 0);
+    tiltY = PIDControl(emaCurrentY, emaDesiredY, 1);
+#else
+    tiltX = constrain(errorX * (diffX / 11.0), -diffX, diffX);
+    tiltY = constrain(errorY * (diffY / 11.0), -diffY, diffY);
+#endif
+
+    float minTilt = 3.0;
+    if (tiltX > 0 && tiltX < minTilt) tiltX = minTilt;
+    if (tiltX < 0 && tiltX > -minTilt) tiltX = -minTilt;
+    if (tiltY > 0 && tiltY < minTilt) tiltY = minTilt;
+    if (tiltY < 0 && tiltY > -minTilt) tiltY = -minTilt;
+
+    // Step 2: 撬一下
+    moveMotorX(motorX, tiltX);
+    moveMotorY(motorY, tiltY);
+    delay(25);  // ✅ 撬一下的持续时间要长一点！
+
+    // Step 3: 回中一点点（保留方向）
+    float returnFactor = 0.2;  // ✅ 更轻的回中，不影响趋势
+    moveMotorX(motorX, returnFactor * tiltX);
+    moveMotorY(motorY, returnFactor * tiltY);
+    delay(20);  // 小延时，等小球反应
+  
+    // 调试打印
+    Serial.print("当前 X: "); Serial.print(emaCurrentX);
+    Serial.print(" Y: "); Serial.print(emaCurrentY);
+    Serial.print(" → 目标 X: "); Serial.print(emaDesiredX);
+    Serial.print(" Y: "); Serial.print(emaDesiredY);
+    Serial.print(" | TiltX: "); Serial.print(tiltX);
+    Serial.print(" TiltY: "); Serial.println(tiltY);
+  }
 }
-
-
