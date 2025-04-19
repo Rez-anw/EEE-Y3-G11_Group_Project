@@ -1,0 +1,156 @@
+#include <Arduino.h>
+#include <Servo.h>
+#include <Wire.h>
+
+#define I2C_ADDR 0x08
+
+// 舵机控制相关
+Servo motorX, motorY;
+
+#define diffX 7
+#define BASE_ANGLE_X 45
+#define MIN_ANGLE_X (BASE_ANGLE_X - diffX)
+#define MAX_ANGLE_X (BASE_ANGLE_X + diffX)
+
+#define diffY 7
+#define BASE_ANGLE_Y 35
+#define MIN_ANGLE_Y (BASE_ANGLE_Y - diffY)
+#define MAX_ANGLE_Y (BASE_ANGLE_Y + diffY)
+
+// 是否启用 PID 控制（否则使用比例映射）
+#define USE_PID true
+
+// PID 参数（适配物理单位 cm）
+float Kp[2] = {15.0, 20.0};
+float Ki[2] = {1, 1};
+float Kd[2] = {4.0, 4.0};
+float Kv[2] = {2.0, 2.0};
+float prevError[2] = {0, 0};
+float integral[2] = {0, 0};
+float integralLimit = 5.0;
+int completionStatus = 0;
+
+// EMA 平滑
+float emaCurrentX = 0.0, emaCurrentY = 0.0;
+float emaDesiredX = 0.0, emaDesiredY = 0.0;
+
+// I2C 数据接收缓存
+int16_t currentX, currentY, desiredX, desiredY;
+
+void receiveData(int byteCount) {
+  if (byteCount >= 9) {
+    uint8_t buffer[8];
+    Wire.read(); // first byte is command
+    for (int i = 0; i < 8 && Wire.available(); i++) {
+      buffer[i] = Wire.read();
+    }
+    currentX = (int16_t)((buffer[0] << 8) | buffer[1]);
+    currentY = (int16_t)((buffer[2] << 8) | buffer[3]);
+    desiredX = (int16_t)((buffer[4] << 8) | buffer[5]);
+    desiredY = (int16_t)((buffer[6] << 8) | buffer[7]);
+
+    // 转换为 cm
+    float curX_cm = currentX / 100.0f;
+    float curY_cm = currentY / 100.0f;
+    float desX_cm = desiredX / 100.0f;
+    float desY_cm = desiredY / 100.0f;
+
+    // EMA 平滑
+    emaCurrentX = curX_cm;
+    emaCurrentY = curY_cm;
+    emaDesiredX = desX_cm;
+    emaDesiredY = desY_cm;
+
+
+
+  }
+}
+
+float PIDControl(float current, float desired, int axis) {
+  float error = desired - current;
+  integral[axis] += error;
+  integral[axis] = constrain(integral[axis], -integralLimit, integralLimit);
+  float derivative = error - prevError[axis];
+  prevError[axis] = error;
+  float velocity = Kv[axis] * derivative;
+  return (Kp[axis] * error) + (Ki[axis] * integral[axis]) + (Kd[axis] * derivative) + velocity;
+}
+
+void moveMotorX(Servo &motor, float angle) {
+  int adjusted = constrain(BASE_ANGLE_X + angle, MIN_ANGLE_X, MAX_ANGLE_X);
+  motor.write(adjusted);
+}
+void moveMotorY(Servo &motor, float angle) {
+  int adjusted = constrain(BASE_ANGLE_Y + angle, MIN_ANGLE_Y, MAX_ANGLE_Y);
+  motor.write(adjusted);
+}
+
+
+void setup() {
+  motorX.attach(6);
+  motorY.attach(3);
+  moveMotorX(motorX, 0);
+  moveMotorY(motorY, 0);
+
+  Wire.begin(I2C_ADDR);
+  Wire.onReceive(receiveData);
+  Serial.begin(115200);
+}
+
+void loop() {
+  while (completionStatus == 0) {
+    // Step 1: 计算误差
+    float errorX = emaDesiredX - emaCurrentX;
+    float errorY = emaDesiredY - emaCurrentY;
+
+    // 死区抑制小震荡
+   // if (abs(errorX) < 0.05) errorX = 0;
+    //if (abs(errorY) < 0.05) errorY = 0;
+
+    float tiltX = 0.0, tiltY = 0.0;
+
+#if USE_PID
+    tiltX = PIDControl(emaCurrentX, emaDesiredX, 0);
+    tiltY = PIDControl(emaCurrentY, emaDesiredY, 1);
+#else
+    tiltX = constrain(errorX * (diffX / 11.0), -diffX, diffX);
+    tiltY = constrain(errorY * (diffY / 11.0), -diffY, diffY);
+#endif
+
+    //float minTilt = 6.0;
+    //if (tiltX > 0 && tiltX < minTilt) tiltX = minTilt;
+    //if (tiltX < 0 && tiltX > -minTilt) tiltX = -minTilt;
+    //if (tiltY > 0 && tiltY < minTilt) tiltY = minTilt;
+    //if (tiltY < 0 && tiltY > -minTilt) tiltY = -minTilt;
+
+    // Step 2: 撬一下
+    moveMotorX(motorX, tiltX);
+    moveMotorY(motorY, tiltY);
+    delay(50);  // ✅ 撬一下的持续时间要长一点！
+
+    // Step 3: 回中一点点（保留方向）
+    float returnFactor = 0.2;  // ✅ 更轻的回中，不影响趋势
+    moveMotorX(motorX, returnFactor * tiltX);
+    moveMotorY(motorY, returnFactor * tiltY);
+    //moveMotorX(motorX, 0);  // 回正为水平角
+    //moveMotorY(motorY, 0);
+    delay(50);  // 小延时，等小球反应
+    float backKickFactor = 0.2;  // 反向拨过去一半
+    moveMotorX(motorX, -tiltX * backKickFactor);
+    moveMotorY(motorY, -tiltY * backKickFactor);
+    delay(30);
+
+    // Step 4: 再回正
+    moveMotorX(motorX, 0);
+    moveMotorY(motorY, 0);
+    delay(30);
+  
+    // 调试打印
+    Serial.print("当前 X: "); Serial.print(emaCurrentX);
+    Serial.print(" Y: "); Serial.print(emaCurrentY);
+    Serial.print(" → 目标 X: "); Serial.print(emaDesiredX);
+    Serial.print(" Y: "); Serial.print(emaDesiredY);
+    Serial.print(" | TiltX: "); Serial.print(tiltX);
+    Serial.print(" TiltY: "); Serial.println(tiltY);
+  }
+}
