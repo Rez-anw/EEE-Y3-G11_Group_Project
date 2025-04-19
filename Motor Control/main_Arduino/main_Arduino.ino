@@ -20,14 +20,14 @@ Servo motorX, motorY;
 ////////////////////////////////////////////
 
 // Minimum and maximum motor angles
-#define diffX 9
+#define diffX 8
 
 #define BASE_ANGLE_X 45
 #define MIN_ANGLE_X (BASE_ANGLE_X - diffX)
 #define MAX_ANGLE_X (BASE_ANGLE_X + diffX)
 
-#define diffY 9
-#define BASE_ANGLE_Y 52
+#define diffY 8
+#define BASE_ANGLE_Y 40
 #define MIN_ANGLE_Y (BASE_ANGLE_Y - diffY ) 
 #define MAX_ANGLE_Y (BASE_ANGLE_Y + diffY)
 
@@ -241,10 +241,11 @@ void loop() {
         motorControl(receivedData[0], receivedData[1], receivedData[2], receivedData[3]); 
         //motorControl(emaCurrentX, emaCurrentY, emaDesiredX, emaDesiredY);
         // write_to_csv( emaCurrentX, emaCurrentY, emaDesiredX, emaDesiredY, filename);
-        delay(50);
+        delay(100);
         moveMotorX(motorX, 0);
         //delay(1);
         moveMotorY(motorY, 0);
+        //motorControl(receivedData[0]/5, receivedData[1]/5, receivedData[2]/5, receivedData[3]/5);
 
 
         // Print the received positions to Serial Monitor if you want 
@@ -261,7 +262,7 @@ void loop() {
         Serial.print("diff_Y: ");
         Serial.print(tiltY), Serial.println(""); 
       
-        delay(50);
+        delay(10);
     }
 
 
